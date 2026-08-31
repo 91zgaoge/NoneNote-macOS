@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>            <string>NoneNote</string>
+	<key>CFBundleDisplayName</key>     <string>NoneNote</string>
+	<key>CFBundleIdentifier</key>      <string>com.noty.macos</string>
+	<key>CFBundleExecutable</key>      <string>Noty</string>
+	<key>CFBundleIconFile</key>        <string>AppIcon</string>
+	<key>CFBundlePackageType</key>     <string>APPL</string>
+	<key>CFBundleShortVersionString</key> <string>1.0.0</string>
+	<key>CFBundleVersion</key>         <string>1</string>
+	<key>LSMinimumSystemVersion</key>  <string>15.0</string>
+	<key>LSUIElement</key>             <true/>
+	<key>NSHighResolutionCapable</key> <true/>
+	<key>NSHumanReadableCopyright</key><string>Sticky notes docked to the screen edge.</string>
+
+	<!-- Sparkle keys are inert here: the fork ships without the Sparkle
+	     framework, so Updater.swift compiles to a stub and nothing is
+	     ever fetched. Left in place in case Sparkle is re-added. -->
+	<key>SUFeedURL</key>               <string>https://raw.githubusercontent.com/aimen08/noty/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>           <string>Ro7FWbi4x44GeJK43X3oI1JhlGwV0JHj6/pqONbLKWs=</string>
+	<key>SUEnableAutomaticChecks</key> <true/>
+	<key>SUScheduledCheckInterval</key><integer>86400</integer>
+	<key>SUAllowsAutomaticUpdates</key><false/>
+</dict>
+</plist>
