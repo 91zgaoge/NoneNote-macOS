@@ -122,6 +122,10 @@ final class SettingsModel: ObservableObject {
     @Published var scBigger: Shortcut  { didSet { Settings.scBigger = scBigger } }
     @Published var scSmaller: Shortcut { didSet { Settings.scSmaller = scSmaller } }
 
+    @Published var webdavURL: String  { didSet { WebDAVConfig.url = webdavURL } }
+    @Published var webdavUser: String { didSet { WebDAVConfig.user = webdavUser } }
+    @Published var webdavPass: String { didSet { WebDAVConfig.pass = webdavPass } }
+
     private var loading = true
 
     init() {
@@ -145,6 +149,9 @@ final class SettingsModel: ObservableObject {
         scDelete = Settings.scDelete
         scBigger = Settings.scBigger
         scSmaller = Settings.scSmaller
+        webdavURL = WebDAVConfig.url
+        webdavUser = WebDAVConfig.user
+        webdavPass = WebDAVConfig.pass
         loading = false
     }
 
@@ -201,6 +208,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
 
 struct SettingsView: View {
     @ObservedObject var model: SettingsModel
+    @ObservedObject private var sync = SyncManager.shared
 
     var body: some View {
         ScrollView {
@@ -273,6 +281,27 @@ struct SettingsView: View {
                         Text("**bold**, *italic*, `code`, ~~struck~~, # headings, > quotes. The text stays plain — only its appearance changes.")
                             .font(.system(size: 11)).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                group("Sync", "WebDAV sync with other NoneNote devices. Off until a server URL is set.") {
+                    row("Server URL") {
+                        TextField("https://example.com/dav", text: $model.webdavURL)
+                            .textFieldStyle(.roundedBorder).frame(width: 240)
+                    }
+                    row("Account") {
+                        TextField("user", text: $model.webdavUser)
+                            .textFieldStyle(.roundedBorder).frame(width: 240)
+                    }
+                    row("Password") {
+                        SecureField("password", text: $model.webdavPass)
+                            .textFieldStyle(.roundedBorder).frame(width: 240)
+                    }
+                    HStack(spacing: 12) {
+                        Button(sync.isSyncing ? "Syncing…" : "Sync Now") { sync.syncNow() }
+                            .disabled(sync.isSyncing || model.webdavURL.trimmingCharacters(in: .whitespaces).isEmpty)
+                        Text("Last sync: \(sync.lastSyncAt.map { Fmt.stamp.string(from: $0) } ?? "never")")
+                            .font(.system(size: 11)).foregroundStyle(.secondary)
                     }
                 }
             }

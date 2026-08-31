@@ -151,6 +151,17 @@ final class NoteStore: ObservableObject {
         return added
     }
 
+    /// Replaces the whole set with a sync merge result — no undo toast, no
+    /// per-note writes. Existing relative order is kept where possible.
+    func applyMerged(_ merged: [Note]) {
+        let byId = Dictionary(merged.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let kept = notes.compactMap { byId[$0.id] }
+        let added = merged.filter { m in !notes.contains { $0.id == m.id } }
+        notes = kept + added
+        pendingUndo = nil
+        store.replaceAll(notes)
+    }
+
     private func seedWelcomeNote() {
         create(body: """
         Welcome to NoneNote

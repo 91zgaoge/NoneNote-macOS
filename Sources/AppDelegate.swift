@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         deckManager = DeckManager()
         UndoToast.shared.start()
+        SyncManager.shared.start()
 
         HotKeys.shared.register(
             newNote: { [weak self] in self?.newNote() },
@@ -87,6 +88,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func importStickies()  { Transfer.importFiles() }
 
     @objc func checkForUpdates() { Updater.shared.checkForUpdates() }
+
+    @objc func syncNow() { SyncManager.shared.syncNow() }
 
     @objc func toggleAutoUpdates() {
         Updater.shared.automaticallyChecks.toggle()

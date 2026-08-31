@@ -125,4 +125,12 @@ final class Store {
         sqlite3_bind_text(st, 1, id, -1, SQLITE_TRANSIENT)
         sqlite3_step(st)
     }
+
+    /// Wholesale rewrite used by sync: one transaction, no per-note churn.
+    func replaceAll(_ notes: [Note]) {
+        exec("BEGIN;")
+        exec("DELETE FROM notes;")
+        for n in notes { upsert(n) }
+        exec("COMMIT;")
+    }
 }

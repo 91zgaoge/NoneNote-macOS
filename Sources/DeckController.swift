@@ -461,6 +461,8 @@ final class DeckController: NSObject {
         menu.addItem(exportItem)
         menu.addItem(withTitle: "Import…", action: #selector(AppDelegate.importStickies), keyEquivalent: "")
         menu.addItem(.separator())
+        menu.addItem(withTitle: "Sync Now", action: #selector(AppDelegate.syncNow), keyEquivalent: "")
+        menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(AppDelegate.openSettings), keyEquivalent: "")
         menu.addItem(withTitle: "Quit NoneNote", action: #selector(AppDelegate.quit), keyEquivalent: "")
 
