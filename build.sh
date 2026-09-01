@@ -1,5 +1,5 @@
 #!/bin/bash
-# Builds Noty.app with the Swift command-line toolchain (no Xcode required).
+# Builds NoneNote-<version>.app with the Swift command-line toolchain (no Xcode required).
 #   ./build.sh          release build
 #   ./build.sh debug    fast build, no optimisation
 #   ./build.sh run      build then relaunch the app
@@ -8,17 +8,20 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-APP="$ROOT/build/Noty.app"
 SDK="$(xcrun --show-sdk-path --sdk macosx)"
 MODE="${1:-release}"
 
-MARKETING_VERSION="${MARKETING_VERSION:-1.3.0}"
+MARKETING_VERSION="${MARKETING_VERSION:-1.3.1}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
+APP_NAME="NoneNote-${MARKETING_VERSION}.app"
+APP="$ROOT/build/$APP_NAME"
+# Convenience symlink so older docs/scripts that expect Noty.app still resolve.
+LINK="$ROOT/build/Noty.app"
 
 OPT="-O"
 [ "$MODE" = "debug" ] && OPT="-Onone"
 
-rm -rf "$APP"
+rm -rf "$APP" "$LINK"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 # Sparkle is optional: with the framework present the app gets an updater,
@@ -76,7 +79,9 @@ fi
 codesign "${SIGN_OPTS[@]}" "$APP"
 codesign --verify --deep --strict "$APP" && echo "✓ signature valid"
 
+ln -sfn "$APP_NAME" "$LINK"
 echo "✓ built $APP"
+echo "  (also $LINK → $APP_NAME)"
 
 if [ "$MODE" = "run" ] || [ "${2:-}" = "run" ]; then
     pkill -x Noty 2>/dev/null || true

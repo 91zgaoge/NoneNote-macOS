@@ -1,25 +1,27 @@
 #!/bin/bash
-# Packages build/Noty.app into a drag-to-Applications disk image.
+# Packages build/NoneNote-<version>.app into a drag-to-Applications disk image.
 #   ./scripts/make-dmg.sh [version]
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP="$ROOT/build/Noty.app"
-VERSION="${1:-${MARKETING_VERSION:-1.0.0}}"
-DMG="$ROOT/build/Noty-${VERSION}.dmg"
+VERSION="${1:-${MARKETING_VERSION:-1.3.1}}"
+APP="$ROOT/build/NoneNote-${VERSION}.app"
+# Fall back to the convenience symlink from build.sh
+[ -d "$APP" ] || APP="$ROOT/build/Noty.app"
+DMG="$ROOT/build/NoneNote-${VERSION}.dmg"
 
 [ -d "$APP" ] || { echo "no app at $APP — run ./build.sh first" >&2; exit 1; }
 
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-cp -R "$APP" "$STAGE/"
+# Stage as NoneNote.app so the DMG shows a clean drag target.
+cp -R "$APP" "$STAGE/NoneNote.app"
 ln -s /Applications "$STAGE/Applications"
 
-# A background-less window is fine; what matters is the drag target being obvious.
 rm -f "$DMG"
 hdiutil create \
-    -volname "Noty" \
+    -volname "NoneNote ${VERSION}" \
     -srcfolder "$STAGE" \
     -ov -format UDZO \
     -fs HFS+ \
