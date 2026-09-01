@@ -209,6 +209,7 @@ final class SettingsWindow: NSObject, NSWindowDelegate {
 struct SettingsView: View {
     @ObservedObject var model: SettingsModel
     @ObservedObject private var sync = SyncManager.shared
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ScrollView {
@@ -309,6 +310,7 @@ struct SettingsView: View {
             .padding(.top, 42)
             .padding(.bottom, 30)
         }
+        .background(PaperDesk.desk(for: colorScheme))
         .frame(width: 520, height: 620)
     }
 
@@ -319,22 +321,28 @@ struct SettingsView: View {
                        @ViewBuilder _ content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Text(caption).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                Text(title).font(.deskUI(15, weight: .semibold))
+                    .foregroundStyle(PaperDesk.ink(for: colorScheme))
+                Text(caption).font(.deskUI(11.5))
+                    .foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
             }
             VStack(alignment: .leading, spacing: 11) { content() }
+                .padding(14)
+                .background(PaperDesk.elevated(for: colorScheme))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 
     private func subhead(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.secondary)
+            .font(.deskUI(11, weight: .semibold))
+            .foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
     }
 
     private func row(_ label: String, @ViewBuilder _ content: () -> some View) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 14) {
-            Text(label).font(.system(size: 12.5))
+            Text(label).font(.deskUI(12.5))
+                .foregroundStyle(PaperDesk.ink(for: colorScheme))
                 .frame(width: 104, alignment: .leading)
             content()
             Spacer(minLength: 0)
@@ -345,7 +353,9 @@ struct SettingsView: View {
                              bare: Bool = false,
                              _ set: @escaping (Shortcut) -> Void) -> some View {
         HStack(spacing: 14) {
-            Text(label).font(.system(size: 12.5)).frame(width: 130, alignment: .leading)
+            Text(label).font(.deskUI(12.5))
+                .foregroundStyle(PaperDesk.ink(for: colorScheme))
+                .frame(width: 130, alignment: .leading)
             ShortcutField(shortcut: value, allowsBareKeys: bare, onChange: set)
                 .frame(width: 128, height: 26)
             if model.duplicate(of: value, ignoring: key) {

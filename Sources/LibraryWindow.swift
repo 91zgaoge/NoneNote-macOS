@@ -61,6 +61,7 @@ final class LibraryWindow: NSObject, NSWindowDelegate {
 struct LibraryView: View {
     @ObservedObject var model: LibraryModel
     @ObservedObject var store = NoteStore.shared
+    @Environment(\.colorScheme) private var colorScheme
 
     private var source: [Note] { model.mode == .all ? store.active : store.archived }
 
@@ -81,12 +82,14 @@ struct LibraryView: View {
         HStack(spacing: 0) {
             sidebar
                 .frame(width: 300)
-                .background(.regularMaterial)
-            Divider()
+                .background(PaperDesk.elevated(for: colorScheme))
+            Divider().overlay(PaperDesk.secondaryInk(for: colorScheme).opacity(0.2))
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(PaperDesk.desk(for: colorScheme))
         }
         .frame(minWidth: 720, minHeight: 420)
+        .background(PaperDesk.desk(for: colorScheme))
         .onChange(of: model.mode) { _, _ in
             model.selection = filtered.first?.id
         }
@@ -109,22 +112,25 @@ struct LibraryView: View {
             .padding(.horizontal, 12)
             .padding(.top, 34)
             .padding(.bottom, 8)
+            .tint(PaperDesk.accent(for: colorScheme))
 
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
                 TextField("Search all notes", text: $model.query)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 12))
+                    .font(.deskUI(12))
+                    .foregroundStyle(PaperDesk.ink(for: colorScheme))
                 if !model.query.isEmpty {
                     Button { model.query = "" } label: {
                         Image(systemName: "xmark.circle.fill").font(.system(size: 11))
-                    }.buttonStyle(.plain).foregroundStyle(.secondary)
+                    }.buttonStyle(.plain).foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
                 }
             }
             .padding(.horizontal, 8)
             .frame(height: 26)
-            .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.06)))
+            .background(RoundedRectangle(cornerRadius: 7).fill(PaperDesk.desk(for: colorScheme)))
             .padding(.horizontal, 12)
             .padding(.bottom, 8)
 
@@ -213,11 +219,13 @@ struct LibraryView: View {
                 .id(note.id)
         } else {
             VStack(spacing: 8) {
-                Image(systemName: "sidebar.right").font(.system(size: 26)).foregroundStyle(.quaternary)
-                Text("Select a note").font(.system(size: 13)).foregroundStyle(.secondary)
+                Image(systemName: "sidebar.right").font(.system(size: 26))
+                    .foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
+                Text("Select a note").font(.deskUI(13))
+                    .foregroundStyle(PaperDesk.secondaryInk(for: colorScheme))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .textBackgroundColor))
+            .background(PaperDesk.desk(for: colorScheme))
         }
     }
 }
@@ -251,7 +259,7 @@ struct LibraryDetail: View {
                 }
 
                 Text(note.displayTitle)
-                    .font(.system(size: 13, weight: .semibold)).lineLimit(1)
+                    .font(.deskNote(13, weight: .semibold)).lineLimit(1)
                 Spacer()
                 Text("Edited \(Fmt.ago(note.modified))")
                     .font(.system(size: 10.5)).foregroundStyle(.secondary)

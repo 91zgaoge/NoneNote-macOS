@@ -513,7 +513,7 @@ struct NoteEditorView: View {
     private var header: some View {
         HStack(spacing: 8) {
             Text(note.displayTitle)
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(.deskNote(12.5, weight: .semibold))
                 .foregroundStyle(pal.ink.opacity(0.92))
                 .lineLimit(1)
             Spacer(minLength: 6)

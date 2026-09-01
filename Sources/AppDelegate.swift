@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var deckManager: DeckManager!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PaperDesk.registerFonts()
         NSApp.setActivationPolicy(.accessory)
         buildMainMenu()
 

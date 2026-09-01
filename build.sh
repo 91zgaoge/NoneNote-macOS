@@ -12,7 +12,7 @@ APP="$ROOT/build/Noty.app"
 SDK="$(xcrun --show-sdk-path --sdk macosx)"
 MODE="${1:-release}"
 
-MARKETING_VERSION="${MARKETING_VERSION:-1.0.0}"
+MARKETING_VERSION="${MARKETING_VERSION:-1.3.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 
 OPT="-O"
@@ -46,6 +46,10 @@ cp "$ROOT/Info.plist" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING_VERSION" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 [ -f "$ROOT/Resources/AppIcon.icns" ] && cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/"
+# Paper Desk OFL fonts (Fraunces / Plus Jakarta Sans / IBM Plex Mono)
+if [ -d "$ROOT/Resources/Fonts" ]; then
+  cp "$ROOT/Resources/Fonts/"*.ttf "$APP/Contents/Resources/" 2>/dev/null || true
+fi
 # Sparkle is MIT; redistributing its framework means shipping its notice too.
 [ -f "$ROOT/LICENSE" ] && cp "$ROOT/LICENSE" "$APP/Contents/Resources/LICENSE.txt"
 [ -f "$ROOT/licenses/THIRD-PARTY.txt" ] && cp "$ROOT/licenses/THIRD-PARTY.txt" "$APP/Contents/Resources/"
