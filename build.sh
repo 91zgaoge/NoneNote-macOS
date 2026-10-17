@@ -59,21 +59,26 @@ fi
 
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
-# Sparkle ships signed by its own team and dyld refuses to load a framework whose
-# Team ID differs from the process — so it has to be re-signed with our identity,
+# Sparkle ships ad-hoc signed, so under a hardened runtime the app's library
+# validation would refuse to load it — it has to be re-signed with our identity,
 # innermost bundle first, before the app that embeds it.
-IDENTITY="${CODESIGN_IDENTITY:--}"
+# APPLE_SIGNING_IDENTITY is the name StoryMoss uses for the same thing.
+IDENTITY="${CODESIGN_IDENTITY:-${APPLE_SIGNING_IDENTITY:--}}"
 SIGN_OPTS=(--force --sign "$IDENTITY")
 [ "$IDENTITY" != "-" ] && SIGN_OPTS+=(--options runtime --timestamp)
 
 FW="$APP/Contents/Frameworks/Sparkle.framework"
 if [ -d "$FW" ]; then
     V="$FW/Versions/B"
+    # Sparkle asks for the XPC services' entitlements to survive re-signing;
+    # --deep is deliberately not used, it is a well-known way to sign the same
+    # nested binary twice with the wrong thing.
+    NESTED_OPTS=("${SIGN_OPTS[@]}" --preserve-metadata=entitlements)
     for x in "$V"/XPCServices/*.xpc; do
-        [ -e "$x" ] && codesign "${SIGN_OPTS[@]}" "$x"
+        [ -e "$x" ] && codesign "${NESTED_OPTS[@]}" "$x"
     done
-    [ -e "$V/Updater.app" ]  && codesign "${SIGN_OPTS[@]}" "$V/Updater.app"
-    [ -e "$V/Autoupdate" ]   && codesign "${SIGN_OPTS[@]}" "$V/Autoupdate"
+    [ -e "$V/Updater.app" ]  && codesign "${NESTED_OPTS[@]}" "$V/Updater.app"
+    [ -e "$V/Autoupdate" ]   && codesign "${NESTED_OPTS[@]}" "$V/Autoupdate"
     codesign "${SIGN_OPTS[@]}" "$FW"
 fi
 codesign "${SIGN_OPTS[@]}" "$APP"

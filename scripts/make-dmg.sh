@@ -30,3 +30,11 @@ hdiutil create \
 
 SIZE=$(stat -f%z "$DMG")
 echo "✓ $DMG ($((SIZE / 1024 / 1024)) MB)"
+
+# Apple expects the disk image itself to be signed before it is notarized.
+# Skipped for ad-hoc builds, where a signature would mean nothing anyway.
+IDENTITY="${CODESIGN_IDENTITY:-${APPLE_SIGNING_IDENTITY:-}}"
+if [ -n "$IDENTITY" ] && [ "$IDENTITY" != "-" ]; then
+    codesign --force --sign "$IDENTITY" --timestamp "$DMG"
+    echo "✓ signed the disk image as $IDENTITY"
+fi

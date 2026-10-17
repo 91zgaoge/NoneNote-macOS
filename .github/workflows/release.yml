@@ -37,16 +37,42 @@ jobs:
       - name: Fetch Sparkle
         run: ./scripts/fetch-sparkle.sh
 
-      - name: Build
+      # Notarization needs all six. Checked up front so a release fails before it
+      # has spent ten minutes building, rather than publishing a DMG that
+      # Gatekeeper refuses on every machine that downloads it.
+      - name: Check the signing secrets
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=()
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD \
+                      APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            [ -n "${!name:-}" ] || missing+=("$name")
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing repository secret(s): ${missing[*]}"
+            echo "Add them under Settings → Secrets and variables → Actions."
+            echo "The names are the ones StoryMoss passes to tauri-action."
+            exit 1
+          fi
+          echo "✓ all signing secrets present"
+
+      - name: Build, sign and notarize
         env:
           MARKETING_VERSION: ${{ steps.v.outputs.version }}
           BUILD_NUMBER: ${{ steps.v.outputs.build }}
-        run: |
-          ./build.sh release
-          codesign --verify --deep --strict build/Noty.app
-
-      - name: Package the disk image
-        run: ./scripts/make-dmg.sh "${{ steps.v.outputs.version }}"
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: ./scripts/release-macos.sh "${{ steps.v.outputs.version }}"
 
       - name: Sign the update and write the appcast
         env:
@@ -64,9 +90,9 @@ jobs:
           test -x ./Sparkle/bin/sign_update
           NOTES="$(git log -1 --pretty=%B | python3 -c 'import html,sys; print("<p>"+html.escape(sys.stdin.read().strip()).replace(chr(10),"<br>")+"</p>")')" \
           ./scripts/make-appcast.sh \
-            "build/Noty-${VERSION}.dmg" \
+            "build/NoneNote-${VERSION}.dmg" \
             "$KEYFILE" \
-            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.v.outputs.tag }}/Noty-${VERSION}.dmg"
+            "https://github.com/${GITHUB_REPOSITORY}/releases/download/${{ steps.v.outputs.tag }}/NoneNote-${VERSION}.dmg"
           rm -f "$KEYFILE"
 
       - name: Publish the release
@@ -76,14 +102,14 @@ jobs:
           V="${{ steps.v.outputs.version }}"
           # A stable filename as well, so the website's download link never has to
           # be edited. Sparkle keeps using the versioned one named in the appcast.
-          cp "build/Noty-${V}.dmg" build/Noty.dmg
+          cp "build/NoneNote-${V}.dmg" build/NoneNote.dmg
           gh release create "${{ steps.v.outputs.tag }}" \
-            "build/Noty-${V}.dmg" build/Noty.dmg \
-            --title "Noty ${V}" \
+            "build/NoneNote-${V}.dmg" build/NoneNote.dmg \
+            --title "NoneNote ${V}" \
             --generate-notes \
             --latest || \
           gh release upload "${{ steps.v.outputs.tag }}" \
-            "build/Noty-${V}.dmg" build/Noty.dmg --clobber
+            "build/NoneNote-${V}.dmg" build/NoneNote.dmg --clobber
 
       - name: Commit the appcast so Sparkle can see the update
         run: |

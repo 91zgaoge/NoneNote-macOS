@@ -1,4 +1,4 @@
-# Noty
+# NoneNote
 
 Sticky notes that live at the edge of your screen. A native macOS app in Swift,
 SwiftUI and AppKit.
@@ -6,8 +6,10 @@ SwiftUI and AppKit.
 No dock icon, no window to manage. Slide the pointer to the right edge and the
 deck fans out.
 
-**[noty-sepia.vercel.app](https://noty-sepia.vercel.app)** ·
-**[Download the latest DMG](https://github.com/aimen08/noty/releases/latest/download/Noty.dmg)**
+**[Download the latest DMG](https://github.com/91zgaoge/NoneNote-macOS/releases/latest/download/NoneNote.dmg)**
+
+A rebranded fork of [noty](https://github.com/aimen08/noty) by Aymen Hamza (MIT) —
+see [Credits](#credits).
 
 ![Noty in use: the deck fans out from the screen edge, a checklist is pulled open, two tasks are ticked off, and the note is dismissed by clicking away](demo.gif)
 
@@ -151,14 +153,17 @@ and macOS 15+.
 
 ```sh
 ./scripts/fetch-sparkle.sh   # once — pulls the Sparkle binary framework
-./build.sh                   # release build → build/Noty.app
+./build.sh                   # release build → build/NoneNote-<version>.app
 ./build.sh debug             # fast, unoptimised
 ./build.sh release run       # build, then relaunch
-open build/Noty.app
+open build/NoneNote-1.3.1.app
 ```
 
 `build.sh` drives `swiftc` directly over `Sources/*.swift`, assembles the
-`.app` bundle around `Info.plist`, embeds Sparkle, and signs it.
+`.app` bundle around `Info.plist`, embeds Sparkle, and signs it. It also leaves a
+`build/Noty.app` symlink pointing at the real bundle for older notes and scripts —
+prefer the `NoneNote-<version>.app` name, and never hand a symlink to
+`actions/upload-artifact`, which does not follow them.
 
 Sparkle is optional. Without `Sparkle/Sparkle.framework` the app still builds —
 `Updater.swift` compiles to a stub and the update menu says so.
@@ -169,25 +174,96 @@ Sparkle is optional. Without `Sparkle/Sparkle.framework` the app still builds �
 git tag v1.0.1 && git push origin v1.0.1
 ```
 
-That fires `.github/workflows/release.yml`, which builds the app, packages a
-DMG, signs it with the EdDSA key, writes `appcast.xml`, publishes a GitHub
-Release and commits the appcast so installed copies can see the update.
+That fires `.github/workflows/release.yml`, which builds and signs the app,
+packages a DMG, notarizes and staples both, signs the update with the EdDSA key,
+writes `appcast.xml`, publishes a GitHub Release and commits the appcast so
+installed copies can see the update.
 
-It needs one repository secret, **`SPARKLE_PRIVATE_KEY`** — the contents of the
-key `scripts/fetch-sparkle.sh`'s toolchain generated. The matching public key is
-already in `Info.plist` as `SUPublicEDKey`; an update signed by any other key is
-refused by the installed app.
+It needs seven repository secrets.
 
-To build a DMG by hand:
+| Secret | What it is |
+| --- | --- |
+| `APPLE_CERTIFICATE` | base64 of the Developer ID Application `.p12` |
+| `APPLE_CERTIFICATE_PASSWORD` | the password set when exporting that `.p12` |
+| `APPLE_SIGNING_IDENTITY` | `Developer ID Application: Name (TEAMID)` |
+| `APPLE_ID` | Apple ID enrolled in the Developer Program |
+| `APPLE_PASSWORD` | an app-specific password for that Apple ID |
+| `APPLE_TEAM_ID` | the 10-character team ID |
+| `SPARKLE_PRIVATE_KEY` | the EdDSA key `Sparkle/bin/generate_keys -x` exported |
+
+The first six are the same names StoryMoss passes to `tauri-action`, so the two
+projects can share them. The release job checks them before it builds and fails
+loudly if any are missing — publishing an unnotarized DMG is the one outcome
+worth refusing to ship, because Gatekeeper blocks it on every machine that
+downloads it.
+
+The EdDSA key pair is NoneNote's own, not upstream noty's: an update signed by
+any key other than the one whose public half is in `Info.plist` as
+`SUPublicEDKey` is refused by the installed app, silently. Generate it once, and
+keep a backup — losing it means no installed copy will ever accept an update
+again.
+
+```sh
+./Sparkle/bin/generate_keys                          # prints the public key
+./Sparkle/bin/generate_keys -x sparkle_keys/private_key.txt   # the secret's value
+```
+
+Paste the public key into `Info.plist` and the file's contents into
+`SPARKLE_PRIVATE_KEY`. `sparkle_keys/` is gitignored; `./scripts/make-appcast.sh`
+signs each release with it, and `scripts/release-macos.sh` will not get past the
+appcast step without it.
+
+To produce `APPLE_CERTIFICATE`, export the Developer ID Application certificate
+and its private key from Keychain Access as a `.p12` (Keychain Access writes the
+format `security import` can read), then base64 it:
+
+```sh
+base64 -i DeveloperID.p12 | pbcopy   # paste into the APPLE_CERTIFICATE secret
+```
+
+`APPLE_PASSWORD` is an app-specific password generated at
+[appleid.apple.com](https://appleid.apple.com), not the Apple ID's own password.
+A `.p12` re-written with `openssl pkcs12 -export` needs `-legacy`, because
+OpenSSL 3 defaults to a format `security import` rejects.
+
+#### Signing and notarization
+
+A build signed with `-` (the default) is ad-hoc. That is fine on the machine that
+built it and nowhere else: ad-hoc signed apps carry no Team ID, so Gatekeeper
+rejects any copy that arrives with a quarantine attribute, which is every copy
+that was downloaded, AirDropped or fetched from CI. `spctl` reports it as
+`Code did not match any currently allowed policy` and the process never starts.
+
+To sign and notarize by hand:
+
+```sh
+APPLE_ID=you@example.com APPLE_PASSWORD=abcd-efgh-ijkl-mnop APPLE_TEAM_ID=TEAMID1234 \
+CODESIGN_IDENTITY="Developer ID Application: Name (TEAMID)" \
+./scripts/release-macos.sh 1.0.1
+```
+
+`release-macos.sh` imports a certificate when `APPLE_CERTIFICATE` is set (that is
+what CI does) and otherwise uses the Developer ID already in the login keychain.
+It builds, packages the DMG, then notarizes and staples the app and the DMG. If
+you only want a DMG and not the notarization round trip:
 
 ```sh
 ./build.sh release && ./scripts/make-dmg.sh 1.0.1
 ```
 
-**Signing note.** Sparkle ships signed by its own team, and dyld refuses to load
-a framework whose Team ID differs from the process — so `build.sh` re-signs the
-framework (innermost bundle first) with the same identity as the app. Set
-`CODESIGN_IDENTITY` to use a Developer ID instead of an ad-hoc signature.
+`scripts/notarize.sh <path>...` notarizes and staples any signed `.app` or `.dmg`
+on its own; without credentials it prints a notice and skips, unless
+`NOTARIZE=required` is set. A stored profile works too:
+`xcrun notarytool store-credentials notary --apple-id ... --team-id ...` then
+`NOTARY_PROFILE=notary ./scripts/notarize.sh build/NoneNote-1.3.1.dmg`.
+
+**Why Sparkle is re-signed.** Sparkle's release tarball is ad-hoc signed. Under
+the hardened runtime that notarization requires, the app's library validation
+would refuse to load a framework with no matching Team ID, so `build.sh` re-signs
+the framework and its XPC services with our identity, innermost bundle first.
+Sparkle asks for the XPC services' entitlements to survive that
+(`--preserve-metadata=entitlements`); `--deep` is deliberately not used to sign,
+as it is a common way to sign the same nested binary twice with the wrong thing.
 
 ## Layout
 
@@ -236,16 +312,24 @@ Set `NOTY_DEBUG_DECK=1` in the environment to trace deck state transitions on st
   so the two are not interchangeable. This one round-trips its own exports with
   full fidelity.
 - No licensing, trial, or update machinery.
-- Ad-hoc signed and not notarised, so Gatekeeper will want a right-click → Open
-  the first time if the app is moved off this machine.
+- Signed with a Developer ID and notarised on release, so a downloaded DMG opens
+  without a Gatekeeper detour. A local `./build.sh` run is still ad-hoc signed,
+  and a copy of that build which carries a quarantine flag is refused outright.
+
+## Credits
+
+NoneNote is a rebranded fork of [noty](https://github.com/aimen08/noty), MIT
+licensed, by Aymen Hamza. The app, its design and the bulk of the source are his
+work; this fork renames it, adds WebDAV sync, a Settings window and a notarised
+release pipeline. The upstream copyright notice is preserved in
+[LICENSE](LICENSE).
 
 ## Licence
 
 MIT — see [LICENSE](LICENSE). Do what you like with it; keep the copyright
 notice.
 
-Noty bundles [Sparkle](https://github.com/sparkle-project/Sparkle) (also MIT)
+NoneNote bundles [Sparkle](https://github.com/sparkle-project/Sparkle) (also MIT)
 for updates. Its notice is reproduced in
-[licenses/THIRD-PARTY.txt](licenses/THIRD-PARTY.txt) and copied into
-`Noty.app/Contents/Resources/`, so it travels with every DMG as its licence
-requires.
+[licenses/THIRD-PARTY.txt](licenses/THIRD-PARTY.txt) and copied into the app's
+`Contents/Resources/`, so it travels with every DMG as its licence requires.
