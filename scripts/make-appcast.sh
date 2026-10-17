@@ -19,8 +19,8 @@ cat > "$ROOT/appcast.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>Noty</title>
-    <link>https://raw.githubusercontent.com/aimen08/noty/main/appcast.xml</link>
+    <title>NoneNote</title>
+    <link>https://raw.githubusercontent.com/91zgaoge/NoneNote-macOS/main/appcast.xml</link>
     <description>Sticky notes that live at the edge of your screen.</description>
     <language>en</language>
     <item>

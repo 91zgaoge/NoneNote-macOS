@@ -15,11 +15,12 @@
 	<key>NSHighResolutionCapable</key> <true/>
 	<key>NSHumanReadableCopyright</key><string>Sticky notes docked to the screen edge.</string>
 
-	<!-- Sparkle keys are inert here: the fork ships without the Sparkle
-	     framework, so Updater.swift compiles to a stub and nothing is
-	     ever fetched. Left in place in case Sparkle is re-added. -->
-	<key>SUFeedURL</key>               <string>https://raw.githubusercontent.com/aimen08/noty/main/appcast.xml</string>
-	<key>SUPublicEDKey</key>           <string>Ro7FWbi4x44GeJK43X3oI1JhlGwV0JHj6/pqONbLKWs=</string>
+	<!-- Pointed at our own appcast: while this named the upstream feed the
+	     updater read aimen08/noty's releases and would offer to replace this
+	     app with upstream's build. SUPublicEDKey must be the public half of
+	     the key whose private half signs the DMGs (SPARKLE_PRIVATE_KEY). -->
+	<key>SUFeedURL</key>               <string>https://raw.githubusercontent.com/91zgaoge/NoneNote-macOS/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>           <string>P3gLRgblQ4jyeOn+sDEQBLJz6xhMGvZ4KqNct/D6Ge8=</string>
 	<key>SUEnableAutomaticChecks</key> <true/>
 	<key>SUScheduledCheckInterval</key><integer>86400</integer>
 	<key>SUAllowsAutomaticUpdates</key><false/>
