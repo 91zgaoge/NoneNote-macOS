@@ -92,19 +92,34 @@ MARKETING_VERSION="$VERSION" "$ROOT/build.sh" release
 APP="$ROOT/build/NoneNote-${VERSION}.app"
 [ -d "$APP" ] || { echo "✗ expected $APP" >&2; exit 1; }
 
-"$ROOT/scripts/make-dmg.sh" "$VERSION"
-DMG="$ROOT/build/NoneNote-${VERSION}.dmg"
-[ -f "$DMG" ] || { echo "✗ expected $DMG" >&2; exit 1; }
-
 # Breaking the signature is the one way the DMG can still be rejected after this
 # script reports success, so it is checked rather than assumed.
 codesign --verify --deep --strict "$APP"
 echo "✓ signature valid"
 
 # --- notarize ---------------------------------------------------------------
-# The app is notarized first so that dragging it out of the DMG leaves a copy
-# that still validates offline; the DMG is stapled so the download itself passes.
-NOTARIZE=required "$ROOT/scripts/notarize.sh" "$APP" "$DMG"
+# The app is notarized and stapled *before* the DMG is built. Building the image
+# first would seal the un-stapled copy into it: the DMG would pass Gatekeeper on
+# a machine that is online, but the app a user drags out of it would carry no
+# ticket of its own and be refused on a machine that is not.
+NOTARIZE=required "$ROOT/scripts/notarize.sh" "$APP"
+
+"$ROOT/scripts/make-dmg.sh" "$VERSION"
+DMG="$ROOT/build/NoneNote-${VERSION}.dmg"
+[ -f "$DMG" ] || { echo "✗ expected $DMG" >&2; exit 1; }
+
+NOTARIZE=required "$ROOT/scripts/notarize.sh" "$DMG"
+
+# The ordering above is the whole point of this script, and getting it wrong
+# again would be invisible until someone opened the DMG offline — so it is
+# asserted rather than trusted.
+MOUNT="$(mktemp -d)"
+if hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MOUNT" >/dev/null 2>&1; then
+    xcrun stapler validate "$MOUNT/NoneNote.app" \
+        || echo "✗ the app inside the DMG has no ticket — check the build order" >&2
+    hdiutil detach "$MOUNT" >/dev/null 2>&1
+fi
+rmdir "$MOUNT" 2>/dev/null || true
 
 echo "✓ release ready: $DMG"
 echo "  Gatekeeper check: spctl -a -vvv -t exec '$APP'"
