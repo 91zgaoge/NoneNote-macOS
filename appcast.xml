@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Written by scripts/make-appcast.sh on each release. This copy is the empty
-     starting state from the fork: it still carried aimen08/noty's 1.0.8 entry,
-     whose enclosure pointed at upstream's DMG. -->
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
     <title>NoneNote</title>
     <link>https://raw.githubusercontent.com/91zgaoge/NoneNote-macOS/main/appcast.xml</link>
     <description>Sticky notes that live at the edge of your screen.</description>
     <language>en</language>
+    <item>
+      <title>1.3.1</title>
+      <pubDate>Sat, 17 Oct 2026 00:29:50 +0000</pubDate>
+      <sparkle:version>8</sparkle:version>
+      <sparkle:shortVersionString>1.3.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>chore: point updates and branding at this fork<br><br>SUFeedURL still named upstream&#x27;s appcast, so the updater read aimen08/noty&#x27;s<br>releases and would have offered to replace this app with upstream&#x27;s build.<br>It now reads ours, and the committed appcast no longer carries upstream&#x27;s<br>1.0.8 entry, whose enclosure pointed at their DMG.<br><br>SUPublicEDKey was byte-identical to upstream&#x27;s, and no Sparkle private key<br>existed on this machine — so a release signed by CI would have failed<br>verification in every installed copy, silently. The fork now has its own<br>EdDSA pair; the public half is in Info.plist and the private half belongs in<br>the SPARKLE_PRIVATE_KEY secret with a backup kept.<br><br>README: titled Noty and linking upstream&#x27;s site and DMG, with four images<br>that the original fork excluded. Now NoneNote, with the screenshots restored<br>and upstream&#x27;s MIT credit made explicit.</p>]]></description>
+      <enclosure url="https://github.com/91zgaoge/NoneNote-macOS/releases/download/v1.3.1/NoneNote-1.3.1.dmg" type="application/octet-stream" sparkle:edSignature="ymChtGcUWmq6EDygw45BwCq04r3MFhKuq6q48Mq7mmcjA9OGKTYY2+KJsQGiu5/Ruw1d5+3VY6dg7Iv0XXsMDA==" length="2160924" />
+    </item>
   </channel>
 </rss>
