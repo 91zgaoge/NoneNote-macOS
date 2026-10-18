@@ -11,7 +11,10 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 SDK="$(xcrun --show-sdk-path --sdk macosx)"
 MODE="${1:-release}"
 
-MARKETING_VERSION="${MARKETING_VERSION:-1.3.1}"
+# Default to whatever Info.plist declares rather than a hardcoded number, so the
+# bundle name cannot drift away from the version the repo ships.
+PLIST_VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$ROOT/Info.plist" 2>/dev/null || true)"
+MARKETING_VERSION="${MARKETING_VERSION:-${PLIST_VERSION:-1.0.0}}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 APP_NAME="NoneNote-${MARKETING_VERSION}.app"
 APP="$ROOT/build/$APP_NAME"
@@ -43,7 +46,7 @@ swiftc $OPT -parse-as-library -swift-version 5 \
     -sdk "$SDK" \
     "${SPARKLE_FLAGS[@]+"${SPARKLE_FLAGS[@]}"}" \
     "$ROOT"/Sources/*.swift \
-    -o "$APP/Contents/MacOS/Noty"
+    -o "$APP/Contents/MacOS/NoneNote"
 
 cp "$ROOT/Info.plist" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $MARKETING_VERSION" "$APP/Contents/Info.plist"
@@ -89,7 +92,7 @@ echo "✓ built $APP"
 echo "  (also $LINK → $APP_NAME)"
 
 if [ "$MODE" = "run" ] || [ "${2:-}" = "run" ]; then
-    pkill -x Noty 2>/dev/null || true
+    pkill -x NoneNote 2>/dev/null || true
     sleep 0.4
     open "$APP"
     echo "✓ launched"

@@ -4,7 +4,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-VERSION="${1:-${MARKETING_VERSION:-1.3.1}}"
+PLIST_VERSION="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$ROOT/Info.plist" 2>/dev/null || true)"
+VERSION="${1:-${MARKETING_VERSION:-${PLIST_VERSION:-1.0.0}}}"
 APP="$ROOT/build/NoneNote-${VERSION}.app"
 # Fall back to the convenience symlink from build.sh
 [ -d "$APP" ] || APP="$ROOT/build/Noty.app"

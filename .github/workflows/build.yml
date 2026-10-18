@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Fetch Sparkle
         run: ./scripts/fetch-sparkle.sh
@@ -26,12 +26,12 @@ jobs:
           # itself rather than uploading a link that arrives dangling.
           APP="$(ls -d build/NoneNote-*.app)"
           test -n "$APP"
-          test -x "$APP/Contents/MacOS/Noty"
+          test -x "$APP/Contents/MacOS/NoneNote"
           codesign --verify --deep --strict "$APP"
           /usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$APP/Contents/Info.plist"
-          otool -L "$APP/Contents/MacOS/Noty" | grep -q Sparkle
+          otool -L "$APP/Contents/MacOS/NoneNote" | grep -q Sparkle
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: NoneNote-app
           path: build/NoneNote-*.app
