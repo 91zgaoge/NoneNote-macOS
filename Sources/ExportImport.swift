@@ -79,7 +79,7 @@ enum Transfer {
                 try render(n).write(to: url, atomically: true, encoding: .utf8)
                 written += 1
             } catch {
-                NSLog("Noty export failed for \(url.lastPathComponent): \(error.localizedDescription)")
+                NSLog("NoneNote export failed for \(url.lastPathComponent): \(error.localizedDescription)")
             }
         }
         reveal(dir)

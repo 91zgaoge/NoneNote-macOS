@@ -8,9 +8,16 @@ import CryptoKit
 enum Paths {
     static let support: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Noty", isDirectory: true)
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
-        return base
+        let dir = base.appendingPathComponent("NoneNote", isDirectory: true)
+        let legacy = base.appendingPathComponent("Noty", isDirectory: true)
+        // The directory was named Noty before 1.4. Moving it across stops an
+        // upgrade from looking like every note was lost; a no-op afterwards.
+        if !FileManager.default.fileExists(atPath: dir.path),
+           FileManager.default.fileExists(atPath: legacy.path) {
+            try? FileManager.default.moveItem(at: legacy, to: dir)
+        }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
     }()
     static var db: URL { support.appendingPathComponent("notes.db") }
     static var key: URL { support.appendingPathComponent("note.key") }

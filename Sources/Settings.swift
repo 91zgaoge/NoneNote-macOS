@@ -153,7 +153,7 @@ enum Settings {
                 if newValue { try SMAppService.mainApp.register() }
                 else { try SMAppService.mainApp.unregister() }
             } catch {
-                NSLog("Noty: launch-at-login toggle failed — \(error.localizedDescription)")
+                NSLog("NoneNote: launch-at-login toggle failed — \(error.localizedDescription)")
             }
         }
     }

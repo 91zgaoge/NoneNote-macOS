@@ -65,7 +65,7 @@ final class HotKeys {
             actions[id] = action
             refs.append(ref)
         } else {
-            NSLog("Noty: hotkey \(id) unavailable (status \(status)) — another app may own it")
+            NSLog("NoneNote: hotkey \(id) unavailable (status \(status)) — another app may own it")
         }
     }
 

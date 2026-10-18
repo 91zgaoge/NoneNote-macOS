@@ -128,7 +128,7 @@ import reads that back. All Notes shows a `done/total` count per note.
 
 ## Your notes stay on your Mac
 
-- Local SQLite database in `~/Library/Application Support/Noty/`.
+- Local SQLite database in `~/Library/Application Support/NoneNote/`.
 - **Note bodies are encrypted with AES-GCM** (CryptoKit, 256-bit). Titles,
   colours and timestamps stay in plaintext so lists render without unsealing
   every row.
@@ -142,8 +142,8 @@ import reads that back. All Notes shows a `done/total` count per note.
 Verify it yourself:
 
 ```sh
-sqlite3 ~/Library/Application\ Support/Noty/notes.db "SELECT hex(substr(body,1,24)) FROM notes;"
-strings ~/Library/Application\ Support/Noty/notes.db | grep "some text from a note body"   # finds nothing
+sqlite3 ~/Library/Application\ Support/NoneNote/notes.db "SELECT hex(substr(body,1,24)) FROM notes;"
+strings ~/Library/Application\ Support/NoneNote/notes.db | grep "some text from a note body"   # finds nothing
 ```
 
 ## Build
@@ -302,7 +302,7 @@ Set `NOTY_DEBUG_DECK=1` in the environment to trace deck state transitions on st
 
 ## Differences from the original
 
-- **Not sandboxed**, so data lives in `~/Library/Application Support/Noty/`
+- **Not sandboxed**, so data lives in `~/Library/Application Support/NoneNote/`
   rather than `~/Library/Containers/`. Sandboxing needs a provisioning profile,
   which needs Xcode and a developer account.
 - The AES key is a `0600` file beside the database. The Keychain is the right

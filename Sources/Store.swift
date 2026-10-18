@@ -13,7 +13,7 @@ final class Store {
         if sqlite3_open_v2(Paths.db.path, &db,
                            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
                            nil) != SQLITE_OK {
-            NSLog("Noty: cannot open db at \(Paths.db.path)")
+            NSLog("NoneNote: cannot open db at \(Paths.db.path)")
         }
         exec("PRAGMA journal_mode=WAL;")
         exec("PRAGMA synchronous=NORMAL;")
@@ -46,7 +46,7 @@ final class Store {
         sqlite3_finalize(st)
         if !existing.contains("pinned") {
             exec("ALTER TABLE notes ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;")
-            NSLog("Noty: migrated notes table — added pinned")
+            NSLog("NoneNote: migrated notes table — added pinned")
         }
     }
 
@@ -55,7 +55,7 @@ final class Store {
     private func exec(_ sql: String) {
         var err: UnsafeMutablePointer<CChar>?
         if sqlite3_exec(db, sql, nil, nil, &err) != SQLITE_OK, let err {
-            NSLog("Noty sql: \(String(cString: err))")
+            NSLog("NoneNote sql: \(String(cString: err))")
             sqlite3_free(err)
         }
     }
@@ -114,7 +114,7 @@ final class Store {
         sqlite3_bind_double(st, 8, n.order)
         sqlite3_bind_int(st, 9, n.pinned ? 1 : 0)
         if sqlite3_step(st) != SQLITE_DONE {
-            NSLog("Noty: upsert failed — \(String(cString: sqlite3_errmsg(db)))")
+            NSLog("NoneNote: upsert failed — \(String(cString: sqlite3_errmsg(db)))")
         }
     }
 

@@ -62,3 +62,12 @@ DELETE   /NoneNote/sync.json        → 204（清理）
 - Undo 删除的边界：若删除已同步（产生墓碑）后再 undo 恢复，因恢复的 note 保持旧 `modified < deletedAt`，下次合并会再次删除它（符合 LWW 语义，Android 侧同）。10 秒 undo 窗口内通常还未同步，实际影响小。
 - `Info.plist` 保留指向上游 noty 的 `SUFeedURL`（无 Sparkle 时惰性，不会发请求）；将来若引入 Sparkle 需先换掉。
 - 数据目录沿用 `~/Library/Application Support/Noty/`：这是与旧 noty 数据兼容的取舍，若后续想彻底改名需加迁移。
+
+## 后续变更（2026-10-17/18，1.4.0）
+
+以上是 fork 当次的记录，部分取舍后来推翻了，以本节为准：
+
+- **身份彻底改名**（本报告"疑虑"里预留的那一步已做）：`CFBundleIdentifier` → `com.nonenote.macos`；可执行名 `Noty` → `NoneNote`（进程名随之改变）；数据目录 → `~/Library/Application Support/NoneNote/`，并加了一次性迁移——新目录不存在而旧目录存在时整体 move，密钥与数据库逐字节不变，升级不会表现为笔记丢失。日志前缀 `"Noty: …"` → `"NoneNote: …"`，`enum NotyMain` → `NoneNoteMain`。改动原因：`com.noty.macos` 是上游的标识符，与上游 noty 同时安装会让 LaunchServices 与 UserDefaults 撞车。
+- **Sparkle 不再是惰性的**：改为捆绑 Sparkle 2.9.6 并接入自更新，`SUFeedURL` 指向本仓库 appcast，密钥对为本项目自有（原先的 `SUPublicEDKey` 与上游相同且本机无对应私钥，那样签出的更新会被已安装副本静默拒绝）。
+- **发布流程**：Developer ID 签名 + 公证 + staple（`.app` 先公证再打包进 DMG，两者都 staple），CI 里由 `scripts/release-macos.sh` 串起来。
+- **README** 已从上游内容改为 NoneNote 自己的，并补回 fork 时排除的截图与 demo。
