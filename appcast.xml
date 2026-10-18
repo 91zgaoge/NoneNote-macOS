@@ -6,13 +6,13 @@
     <description>Sticky notes that live at the edge of your screen.</description>
     <language>en</language>
     <item>
-      <title>1.3.2</title>
-      <pubDate>Sat, 17 Oct 2026 00:42:21 +0000</pubDate>
-      <sparkle:version>11</sparkle:version>
-      <sparkle:shortVersionString>1.3.2</sparkle:shortVersionString>
+      <title>1.4.0</title>
+      <pubDate>Sun, 18 Oct 2026 01:37:34 +0000</pubDate>
+      <sparkle:version>14</sparkle:version>
+      <sparkle:shortVersionString>1.4.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-      <description><![CDATA[<p>release: 1.3.2 — staple the app before packaging<br><br>1.3.1 shipped a DMG whose app had no notarization ticket of its own, so a<br>first launch on a machine that was offline would have been refused. This<br>release is that fix; the version bump keeps the repo&#x27;s declared version in<br>step with what the tag publishes.</p>]]></description>
-      <enclosure url="https://github.com/91zgaoge/NoneNote-macOS/releases/download/v1.3.2/NoneNote-1.3.2.dmg" type="application/octet-stream" sparkle:edSignature="XK3HMAoXOtCQlQ7t7rARLaGpztCdyw4Hf4sL8HavBS80urcP01knYfFxVMDTuVM/zJcgrksWDKznjJ2ECaHQBA==" length="2161824" />
+      <description><![CDATA[<p>chore: stop hardcoding the version, drop the dead Pages workflow, bump actions<br><br>build.sh, make-dmg.sh and release-macos.sh each defaulted to a literal 1.3.1,<br>so bumping Info.plist alone silently produced a bundle named after the old<br>version. They read CFBundleShortVersionString from Info.plist instead, which<br>is the one place the version is declared.<br><br>pages.yml could never run — it needs site/, which the fork excluded — and it<br>rewrote upstream&#x27;s vercel host into aimen08.github.io/noty. Removed rather<br>than left as a trap.<br><br>Actions that still ran on Node 20 are moved to their current majors. Note<br>upload-artifact@v5 is still node20; v7 is the first that is not.</p>]]></description>
+      <enclosure url="https://github.com/91zgaoge/NoneNote-macOS/releases/download/v1.4.0/NoneNote-1.4.0.dmg" type="application/octet-stream" sparkle:edSignature="g1JmJj3cTBIuF0sOTpnkCItypdYVQjIFj7R/RfMs9nnu5XuSfW0LQfeHlx5dMo0UnVlxHnrtMLulNfILC1GzDQ==" length="2162669" />
     </item>
   </channel>
 </rss>
